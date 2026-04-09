@@ -61,6 +61,13 @@
       </div>
     </div>
 
+    <form method="post" action="{{ url_for('create_dir', path=current_path.lstrip('/')) }}">
+      <div role="group">
+        <input type="text" name="dirname" placeholder="Nouveau dossier" required>
+        <button type="submit" class="btn btn-secondary">Créer</button>
+      </div>
+    </form>
+
     <form method="post" enctype="multipart/form-data" action="{{ url_for('upload', path=current_path.lstrip('/')) }}">
       <div role="group">
         <input type="file" name="file" required>

@@ -1,6 +1,6 @@
 from quart import Quart, render_template, request, redirect, url_for
 
-from picker.webdav import list_files, upload_file
+from picker.webdav import list_files, mkdir, upload_file
 
 app = Quart(__name__)
 
@@ -21,6 +21,16 @@ def build_breadcrumb(path: str) -> list[dict]:
         accumulated += part + "/"
         crumbs.append({"name": part, "path": accumulated})
     return crumbs
+
+
+@app.route("/mkdir/<path:path>", methods=["POST"])
+async def create_dir(path: str = "/"):
+    path = normalize_path(path)
+    form = await request.form
+    name = form.get("dirname", "").strip()
+    if name:
+        mkdir(path.rstrip("/") + "/" + name)
+    return redirect(url_for("browse", path=path.lstrip("/")))
 
 
 @app.route("/upload/<path:path>", methods=["POST"])

@@ -5,6 +5,11 @@ WEBDAV_URL = "http://localhost:8080"
 client = Client(WEBDAV_URL)
 
 
+def mkdir(path: str) -> None:
+    """Create a directory."""
+    client.mkdir(path)
+
+
 def upload_file(directory: str, filename: str, fileobj) -> None:
     """Upload a file to the given directory."""
     remote_path = directory.rstrip("/") + "/" + filename

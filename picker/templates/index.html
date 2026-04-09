@@ -54,10 +54,19 @@
       <p>Dossier vide.</p>
     {% endif %}
 
-    <div role="group" class="actions">
-      <button id="btn-cancel" class="btn btn-secondary">Annuler</button>
-      <button id="btn-select" class="btn btn-primary" disabled>Sélectionner</button>
+    <div class="actions">
+      <div role="group">
+        <button id="btn-cancel" class="btn btn-secondary">Annuler</button>
+        <button id="btn-select" class="btn btn-primary" disabled>Sélectionner</button>
+      </div>
     </div>
+
+    <form method="post" enctype="multipart/form-data" action="{{ url_for('upload', path=current_path.lstrip('/')) }}">
+      <div role="group">
+        <input type="file" name="file" required>
+        <button type="submit" class="btn btn-secondary">Uploader</button>
+      </div>
+    </form>
   </main>
 
   <script src="{{ url_for('static', filename='picker.js') }}"></script>

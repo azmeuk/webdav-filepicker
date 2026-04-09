@@ -5,6 +5,12 @@ WEBDAV_URL = "http://localhost:8080"
 client = Client(WEBDAV_URL)
 
 
+def upload_file(directory: str, filename: str, fileobj) -> None:
+    """Upload a file to the given directory."""
+    remote_path = directory.rstrip("/") + "/" + filename
+    client.upload_fileobj(fileobj, remote_path)
+
+
 def list_files(path: str = "/") -> list[dict]:
     """List files and directories at the given path."""
     entries = client.ls(path, detail=True)

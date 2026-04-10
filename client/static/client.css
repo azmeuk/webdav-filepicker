@@ -1,3 +1,7 @@
+.hidden {
+  display: none;
+}
+
 #picker-overlay {
   display: none;
   position: fixed;

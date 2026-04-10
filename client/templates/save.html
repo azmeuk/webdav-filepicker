@@ -13,15 +13,18 @@
       <p><a href="{{ url_for('index') }}">&larr; Retour</a></p>
 
       <form id="save-form">
-        <label>Fichiers à envoyer
-          <input type="file" name="files" multiple required>
+        <label>Fichiers locaux
+          <input type="file" name="files" multiple>
         </label>
 
-        <fieldset>
-          <legend>Mode de transmission</legend>
-          <label><input type="radio" name="sourceType" value="payload" checked> Payload (base64)</label>
-          <label><input type="radio" name="sourceType" value="downloadUrl"> Download URL</label>
-        </fieldset>
+        <p>ou</p>
+
+        <label>URL du fichier
+          <input type="url" name="downloadUrl" placeholder="https://example.com/file.pdf">
+        </label>
+        <label>Nom du fichier (pour URL)
+          <input type="text" name="downloadName" placeholder="file.pdf">
+        </label>
 
         <fieldset>
           <legend>Mode d'ouverture</legend>
@@ -59,20 +62,28 @@
         bridge.display = form.querySelector('[name="display"]:checked').value;
 
         const files = Array.from(form.querySelector('[name="files"]').files);
-        if (files.length === 0) return;
-
-        const sourceType = form.querySelector('[name="sourceType"]:checked').value;
+        const url = form.querySelector('[name="downloadUrl"]').value.trim();
+        const name = form.querySelector('[name="downloadName"]').value.trim();
 
         const params = new URLSearchParams();
-        params.set("sourceType", sourceType);
 
-        if (sourceType === "payload") {
+        if (files.length > 0) {
+          params.set("sourceType", "payload");
           bridge.pendingFiles = await Promise.all(files.map(async (f) => ({
             name: f.name,
             mimeType: f.type,
             size: f.size,
             payload: await readFileAsBase64(f),
           })));
+        } else if (url) {
+          params.set("sourceType", "downloadUrl");
+          bridge.pendingFiles = [{
+            name: name || url.split("/").pop() || "file",
+            downloadUrl: url,
+          }];
+        } else {
+          console.debug("[save] no files selected and no URL provided");
+          return;
         }
 
         bridge.open(params);

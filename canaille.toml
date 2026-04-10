@@ -1,0 +1,31 @@
+SECRET_KEY = "dev-secret-key-change-in-prod"
+SERVER_NAME = "10.4.0.32:5002"
+BROKER = "dramatiq_eager_broker:EagerBroker"
+DEBUG = true
+
+[CANAILLE]
+NAME = "Open Buro Identity"
+DATABASE = "sql"
+ENABLE_REGISTRATION = true
+
+[CANAILLE.ACL.DEFAULT]
+PERMISSIONS = ["edit_self", "use_oidc", "manage_own_groups"]
+
+[CANAILLE.ACL.ADMIN]
+PERMISSIONS = ["manage_oidc", "manage_users", "manage_all_groups", "delete_account", "impersonate_users"]
+WRITE = ["groups", "lock_date"]
+FILTER = [{user_name = "admin"}, {groups = "admin"}]
+
+[CANAILLE_OIDC]
+ENABLE_OIDC = true
+
+[[CANAILLE_OIDC.ACTIVE_JWKS]]
+kty = "RSA"
+n = "tVQHcmgT5w6B8o7Sh1Vnsxn0t71hvQ5OMC3k6322nH5plmVFpPNaVbhqojDQPNeifIP1uCHWuxFyU0SVLOsxOjwoKBuHWPU_A5sASNL64XwZsBLMoOT_LYZqnDuzq6K-3wLr6ZU_y-4hmQb2ponEweqWvIj0eG5wnzqxiKFcGB8iRXrlAJzu8cfzV7fNs6LH38GYAnGOr-0Dblmud-u6YHOYrctbnu269nKomcggD0P5yjfelDGDfBt4EHolNhxMhd0SKAwWwGpPIUxk-zYbjXIuPwLUAafkBHIIcPdHZ49efZ2m401ks83VzPslR0m0dqAcm_VCUsfQLwGXgHY3DQ"
+e = "AQAB"
+d = "I6lQAZ8YcvO2eNa_7t_MEjxDlbNIOp9Kn00XXX0O4f42k9588PDvTjaDujwxaBXcnfJx6_Gzwnyu6FNvpzLmLpbQKvsnBkbNSs88IhZkQt5eSvOXjPkcen6aDvnq3xGVylRPw1OYBWpi7y6gaaZkrOKPHKsusVS_D4HCkqVxcEix9SLCxa6BtXXOtizWIQoGockOooR9-aCDFQnJ-mgmHfZCxJ2r1M0e21h9ppntt0OYAxy5UrKA2YQHLW5WZGHW687EmT3Nl-1oqVwXrmBE3bPNxO-CMCsI2B8R0mzTQ_IH1WhjI_z_qdli4zb6dmo0V3jr0XQW_VzQC_A0AvSGwQ"
+p = "8OuPFnHKbRrWf2OqySR0CA8JOisnDpcqTlrity7j-7pyZSkXkkmmH_aJNju9docBxfFefJicIfxTOIhVofCQamrDAAWAteYw-YRdCrAzZUXhDK9a9om54cfjxSTr4l06y7j0GKl8KFwiNW6zvLAV-loY9iQc75E2k1l0xTxsbX0"
+q = "wK2VxFcQfQignJI9b2EKVD886qFsS6iwqJyYBA12PvRAyNeySbYHKRADU63Lp2xOiAH9BrV-jHXGNV-N9o5Bl_z_VCLGWgFkPonA1dg1tmtOFnu_oykNv3AZW1weqrhvEs8lIBqhojeXq6NNPAhXkAzkMo59SZIpMWD5w82cZNE"
+dp = "Ci3ZuNgL9nooz-8VGzSIFoMUH7oNB2fJqM_cPmMjzNH-3VlUHqEv_K-88mapxaVEpOli1Z7ZEfKITZ4tCA-S-nwSSyDwZD8amKBIEhiJw2CldpS-IiaFjQ2WCRFbShAoWM0yuwwGK-pgo6NOws0p0I8X-OZjtpeLF8Sy01aPOj0"
+dq = "b87LD8ouCUBOY00BVXaMVeL0aHsPqr_S86UbGY7uRQ3b4jA4h0mX0h42sAI0IY1Z7Naqi5AaRUu6nxI6AQ7_xUDMsXgUffo8v4WUXwM9-ANApw9cX0PddG-KZ1eHfC3WVqXZt0186fM0kicLFIEKvs6cRTImReEJAlxx00unK2E"
+qi = "ssyKMy3D-pWRvPfnRFwNJeSf7NWv9Jyb82P7-Yt5KSSxktxNHNjStwDS9FN77fKm-q767zO9Az6kQ_76qm6DHHPtfOo2cE7Y-vhU506MnLBgCQSrUXD9alnFP7rAxsxvSnKcCl1W5uAgol5pslWNh2hlxQaW_4z4RmR6axWmsMM"

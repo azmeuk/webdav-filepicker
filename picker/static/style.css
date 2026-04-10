@@ -12,15 +12,23 @@
 
 .toolbar > a {
   text-decoration: none;
-  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.toolbar svg,
+.breadcrumb svg {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 nav[aria-label="Breadcrumb"] {
   padding: 0;
+  margin-bottom: 0;
 }
 
 nav[aria-label="Breadcrumb"] ul {
   margin-left: 0;
+  margin-bottom: 0;
 }
 
 table.table-hover {

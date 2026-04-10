@@ -1,3 +1,4 @@
+{% from "icons.html" import icon %}
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
   <head>
@@ -24,15 +25,19 @@
         <nav aria-label="Breadcrumb">
           <ul class="breadcrumb">
             {% for crumb in breadcrumb %}
-              {% if loop.last %}
+              {% if loop.last and crumb.is_home %}
+                <li aria-current="page">{{ icon("home", 28) }}</li>
+              {% elif loop.last %}
                 <li aria-current="page">{{ crumb.name }}</li>
+              {% elif crumb.is_home %}
+                <li><a href="{{ url_for('browse', path=crumb.path.lstrip('/'), **request.args) }}">{{ icon("home", 28) }}</a></li>
               {% else %}
                 <li><a href="{{ url_for('browse', path=crumb.path.lstrip('/'), **request.args) }}">{{ crumb.name }}</a></li>
               {% endif %}
             {% endfor %}
           </ul>
         </nav>
-        <a href="{{ url_for('new_dir', path=current_path.lstrip('/'), **request.args) }}" title="Nouveau dossier">📁+</a>
+        <a href="{{ url_for('new_dir', path=current_path.lstrip('/'), **request.args) }}" title="Nouveau dossier">{{ icon("folder-plus", 28) }}</a>
       </div>
 
       {% if entries %}
@@ -49,26 +54,26 @@
             {% for entry in entries %}
               {% if entry.is_dir %}
                 <tr class="clickable" onclick="location.href='{{ url_for('browse', path=entry.path.lstrip('/'), **request.args) }}'">
-                  <td>📁</td>
+                  <td>{{ icon("folder") }}</td>
                   <td><a href="{{ url_for('browse', path=entry.path.lstrip('/'), **request.args) }}">{{ entry.name }}</a></td>
                   <td></td>
                   {% if not intent.client_url %}
                     <td class="delete-cell">
                       <form method="post" action="{{ url_for('delete', path=entry.path.lstrip('/')) }}" onclick="event.stopPropagation()" onsubmit="return confirm('Supprimer le dossier {{ entry.name }} ?')">
-                        <button type="submit" class="btn-delete" title="Supprimer">🗑️</button>
+                        <button type="submit" class="btn-delete" title="Supprimer">{{ icon("trash-2") }}</button>
                       </form>
                     </td>
                   {% endif %}
                 </tr>
               {% else %}
                 <tr class="clickable file-entry" data-path="{{ entry.path }}" data-name="{{ entry.name }}" data-size="{{ entry.size or 0 }}" data-content-type="{{ entry.content_type }}">
-                  <td>📄</td>
+                  <td>{{ icon("file") }}</td>
                   <td>{{ entry.name }}</td>
                   <td>{{ entry.size | filesizeformat if entry.size else '' }}</td>
                   {% if not intent.client_url %}
                     <td class="delete-cell">
                       <form method="post" action="{{ url_for('delete', path=entry.path.lstrip('/')) }}" onclick="event.stopPropagation()" onsubmit="return confirm('Supprimer {{ entry.name }} ?')">
-                        <button type="submit" class="btn-delete" title="Supprimer">🗑️</button>
+                        <button type="submit" class="btn-delete" title="Supprimer">{{ icon("trash-2") }}</button>
                       </form>
                     </td>
                   {% endif %}

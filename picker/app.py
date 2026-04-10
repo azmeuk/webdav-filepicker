@@ -20,11 +20,11 @@ def normalize_path(path: str) -> str:
 
 def build_breadcrumb(path: str) -> list[dict]:
     parts = path.strip("/").split("/") if path.strip("/") else []
-    crumbs = [{"name": "🏠", "path": "/"}]
+    crumbs = [{"name": "home", "path": "/", "is_home": True}]
     accumulated = "/"
     for part in parts:
         accumulated += part + "/"
-        crumbs.append({"name": part, "path": accumulated})
+        crumbs.append({"name": part, "path": accumulated, "is_home": False})
     return crumbs
 
 

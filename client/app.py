@@ -1,9 +1,11 @@
+import os
+
 import httpx
 from quart import Quart, render_template, request
 
 app = Quart(__name__)
 
-PICKER_BASE_URL = "http://10.4.0.32:5000"
+PICKER_BASE_URL = os.environ.get("PICKER_BASE_URL", "http://localhost:5000")
 
 
 async def load_capabilities() -> dict:

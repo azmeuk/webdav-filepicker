@@ -1,0 +1,100 @@
+{% from "icons.html" import icon %}
+<div id="file-list" data-current-path="{{ current_path }}"
+     hx-target="#file-list" hx-swap="outerHTML">
+
+  <div class="toolbar">
+    <nav aria-label="Breadcrumb">
+      <ul class="breadcrumb">
+        {% for crumb in breadcrumb %}
+          {% if loop.last and crumb.is_home %}
+            <li aria-current="page">{{ icon("home", 28) }}</li>
+          {% elif loop.last %}
+            <li aria-current="page">{{ crumb.name }}</li>
+          {% elif crumb.is_home %}
+            <li><a href="{{ url_for(browse_route, path=crumb.path.lstrip('/'), **request.args) }}"
+                   hx-get="{{ url_for(browse_route, path=crumb.path.lstrip('/'), **partial_args) }}">{{ icon("home", 28) }}</a></li>
+          {% else %}
+            <li><a href="{{ url_for(browse_route, path=crumb.path.lstrip('/'), **request.args) }}"
+                   hx-get="{{ url_for(browse_route, path=crumb.path.lstrip('/'), **partial_args) }}">{{ crumb.name }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+    <a href="{{ url_for('new_dir', path=current_path.lstrip('/'), **request.args) }}" title="Nouveau dossier">{{ icon("folder-plus", 28) }}</a>
+  </div>
+
+  {% if entries %}
+    <table class="table-hover">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Nom</th>
+          <th>Taille</th>
+          {% if not intent.client_url %}<th class="delete-col"></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+          {% set dir_url = url_for(browse_route, path=entry.path.lstrip('/'), **request.args) %}
+          {% set dir_url_partial = url_for(browse_route, path=entry.path.lstrip('/'), **partial_args) %}
+          {% if entry.is_dir %}
+            <tr class="row-link">
+              <td><a href="{{ dir_url }}" hx-get="{{ dir_url_partial }}">{{ icon("folder") }}</a></td>
+              <td><a href="{{ dir_url }}" hx-get="{{ dir_url_partial }}">{{ entry.name }}</a></td>
+              <td><a href="{{ dir_url }}" hx-get="{{ dir_url_partial }}"></a></td>
+              {% if not intent.client_url %}
+                <td class="delete-cell">
+                  <form method="post" action="{{ url_for('delete', path=entry.path.lstrip('/')) }}" onsubmit="return confirm('Supprimer le dossier {{ entry.name }} ?')">
+                    <button type="submit" class="btn-delete" title="Supprimer">{{ icon("trash-2", 24) }}</button>
+                  </form>
+                </td>
+              {% endif %}
+            </tr>
+          {% else %}
+            {% if intent.action == "PICK" and intent.client_url %}
+              <tr class="clickable file-entry" data-path="{{ entry.path }}" data-name="{{ entry.name }}" data-size="{{ entry.size or 0 }}" data-content-type="{{ entry.content_type }}">
+                <td>{{ icon("file") }}</td>
+                <td>{{ entry.name }}</td>
+                <td>{{ entry.size | filesizeformat if entry.size else '' }}</td>
+              </tr>
+            {% elif intent.action == "SAVE" and intent.client_url %}
+              <tr>
+                <td>{{ icon("file") }}</td>
+                <td>{{ entry.name }}</td>
+                <td>{{ entry.size | filesizeformat if entry.size else '' }}</td>
+              </tr>
+            {% else %}
+              {% set file_url = url_for('preview', path=entry.path.lstrip('/')) %}
+              <tr class="row-link">
+                <td><a href="{{ file_url }}">{{ icon("file") }}</a></td>
+                <td><a href="{{ file_url }}">{{ entry.name }}</a></td>
+                <td><a href="{{ file_url }}">{{ entry.size | filesizeformat if entry.size else '' }}</a></td>
+                {% if not intent.client_url %}
+                  <td class="delete-cell">
+                    <form method="post" action="{{ url_for('delete', path=entry.path.lstrip('/')) }}" onsubmit="return confirm('Supprimer {{ entry.name }} ?')">
+                      <button type="submit" class="btn-delete" title="Supprimer">{{ icon("trash-2", 24) }}</button>
+                    </form>
+                  </td>
+                {% endif %}
+              </tr>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Dossier vide.</p>
+  {% endif %}
+
+  {% if intent.client_url %}
+    <div class="actions">
+      {% if intent.action == "SAVE" %}
+        <div id="save-file-list"></div>
+        <input type="text" id="save-filename" placeholder="Nom du fichier" class="hidden">
+        <button id="btn-save" class="btn btn-primary">Enregistrer ici</button>
+      {% else %}
+        <button id="btn-select" class="btn btn-primary" disabled>Sélectionner</button>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>

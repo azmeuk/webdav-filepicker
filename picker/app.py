@@ -27,6 +27,8 @@ import os
 app = Quart(__name__)
 app.secret_key = "dev"
 
+WEBDAV_PUBLIC_URL = os.environ.get("WEBDAV_PUBLIC_URL", "http://localhost:8080")
+
 
 @app.after_request
 async def add_cors_headers(response):
@@ -202,7 +204,7 @@ async def api_save(path: str = "/"):
             "name": name,
             "sharingUrl": public_base_url()
             + url_for("preview", path=file_path.lstrip("/")),
-            "downloadUrl": os.environ.get("WEBDAV_PUBLIC_URL") + file_path,
+            "downloadUrl": WEBDAV_PUBLIC_URL + file_path,
         }
     )
 
@@ -240,14 +242,19 @@ async def _browse(path: str, action: str):
         ]
 
     browse_route = "save_browse" if action == "SAVE" else "browse"
-    return await render_template(
-        "index.html",
+    partial_args = {**request.args, "_partial": "1"}
+    template_ctx = dict(
         entries=[*dirs, *files],
         breadcrumb=build_breadcrumb(path),
         current_path=path,
         intent=intent,
         browse_route=browse_route,
+        webdav_public_url=WEBDAV_PUBLIC_URL,
+        partial_args=partial_args,
     )
+    is_partial = request.args.get("_partial") == "1"
+    template = "partials/file_list.html" if is_partial else "index.html"
+    return await render_template(template, **template_ctx)
 
 
 @app.route("/")

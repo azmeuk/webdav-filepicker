@@ -1,6 +1,9 @@
 const selectedFiles = [];
 let saveData = null;
 
+function getCurrentPath() {
+  return document.getElementById("file-list")?.dataset.currentPath || "/";
+}
 
 function updateButton() {
   const btn = document.getElementById("btn-select");
@@ -41,38 +44,40 @@ async function fetchContent(path) {
   return data.content;
 }
 
-// PICK mode: file selection
-document.querySelectorAll(".file-entry[data-path]").forEach(el => {
-  el.addEventListener("click", () => {
-    const file = {
-      name: el.dataset.name,
-      path: el.dataset.path,
-      size: parseInt(el.dataset.size),
-      contentType: el.dataset.contentType,
-    };
+// PICK mode: file selection via event delegation
+document.addEventListener("click", (e) => {
+  const el = e.target.closest(".file-entry[data-path]");
+  if (!el) return;
 
-    if (MULTIPLE) {
-      const idx = selectedFiles.findIndex(f => f.path === file.path);
-      if (idx >= 0) {
-        selectedFiles.splice(idx, 1);
-        el.classList.remove("selected");
-      } else {
-        selectedFiles.push(file);
-        el.classList.add("selected");
-      }
+  const file = {
+    name: el.dataset.name,
+    path: el.dataset.path,
+    size: parseInt(el.dataset.size),
+    contentType: el.dataset.contentType,
+  };
+
+  if (MULTIPLE) {
+    const idx = selectedFiles.findIndex(f => f.path === file.path);
+    if (idx >= 0) {
+      selectedFiles.splice(idx, 1);
+      el.classList.remove("selected");
     } else {
-      document.querySelectorAll(".file-entry").forEach(e => e.classList.remove("selected"));
-      selectedFiles.length = 0;
       selectedFiles.push(file);
       el.classList.add("selected");
     }
+  } else {
+    document.querySelectorAll(".file-entry").forEach(e => e.classList.remove("selected"));
+    selectedFiles.length = 0;
+    selectedFiles.push(file);
+    el.classList.add("selected");
+  }
 
-    updateButton();
-  });
+  updateButton();
 });
 
 // PICK mode: send selection
-document.getElementById("btn-select")?.addEventListener("click", async () => {
+document.addEventListener("click", async (e) => {
+  if (!e.target.closest("#btn-select")) return;
   if (selectedFiles.length === 0) {
     console.debug("[picker] select clicked but no files selected");
     return;
@@ -111,14 +116,12 @@ document.getElementById("btn-select")?.addEventListener("click", async () => {
   });
 });
 
-// SAVE mode: receive payload from client and handle save
+// SAVE mode
 if (ACTION === "SAVE") {
   console.debug("[picker] SAVE mode, sending ready");
   sendMessage({ status: "ready", id: INTENT_ID });
 
-  // Listen for payload from client
   window.addEventListener("message", (e) => {
-    console.debug("[picker] message received");
     if (!e.data || !e.data.status) {
       console.debug("[picker] ignoring message: no status", e.data);
       return;
@@ -148,13 +151,17 @@ if (ACTION === "SAVE") {
     }
   });
 
-  document.getElementById("btn-save")?.addEventListener("click", async () => {
+  // Save button via event delegation
+  document.addEventListener("click", async (e) => {
+    if (!e.target.closest("#btn-save")) return;
+
     if (!saveData || !saveData.results || saveData.results.length === 0) {
       console.warn("[picker] save clicked but no data received from client");
       sendMessage({ status: "error", id: INTENT_ID, message: "No file data received" });
       return;
     }
 
+    const currentPath = getCurrentPath();
     const filenameInput = document.getElementById("save-filename");
     const files = saveData.results.map((f, i) => {
       const name = (i === 0 && filenameInput && filenameInput.value.trim())
@@ -163,7 +170,7 @@ if (ACTION === "SAVE") {
       return { ...f, name };
     });
 
-    console.debug("[picker] uploading", files.length, "file(s) to", CURRENT_PATH);
+    console.debug("[picker] uploading", files.length, "file(s) to", currentPath);
     const results = [];
     for (const f of files) {
       const body = { name: f.name };
@@ -177,7 +184,7 @@ if (ACTION === "SAVE") {
         return;
       }
 
-      const resp = await fetch("/api/save" + CURRENT_PATH, {
+      const resp = await fetch("/api/save" + currentPath, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -197,11 +204,18 @@ if (ACTION === "SAVE") {
   });
 }
 
-// Cancel
-document.getElementById("btn-cancel")?.addEventListener("click", () => {
+// Cancel via event delegation
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#btn-cancel")) return;
   console.debug("[picker] cancel clicked");
   sendMessage({
     status: "cancel",
     id: INTENT_ID,
   });
+});
+
+// Clear selection on HTMX swap
+document.addEventListener("htmx:afterSwap", () => {
+  selectedFiles.length = 0;
+  updateButton();
 });

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -69,6 +69,7 @@
 
     <script>
       const PICKER_URL = "{{ picker_url }}";
+      let currentIntentId = null;
 
       document.getElementById("picker-form").addEventListener("submit", (e) => {
         e.preventDefault();
@@ -82,12 +83,12 @@
         const typeCheckboxes = form.querySelectorAll('[name="type"]:checked');
         const types = Array.from(typeCheckboxes).map(cb => cb.value);
 
-        const id = crypto.randomUUID();
+        currentIntentId = crypto.randomUUID();
         const clientUrl = window.location.origin;
 
         const params = new URLSearchParams();
         params.set("clientUrl", clientUrl);
-        params.set("id", id);
+        params.set("id", currentIntentId);
         params.set("multiple", multiple);
         if (allowedMimeTypes.length > 0) {
           params.set("allowedMimeTypes", allowedMimeTypes.join(","));
@@ -114,8 +115,12 @@
       });
 
       window.addEventListener("message", (e) => {
+        const pickerOrigin = new URL(PICKER_URL).origin;
+        if (e.origin !== pickerOrigin) return;
+
         const data = e.data;
         if (!data || !data.status) return;
+        if (data.id !== currentIntentId) return;
 
         const result = document.getElementById("result");
 

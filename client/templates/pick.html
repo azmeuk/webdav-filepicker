@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PICK — Client</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='mu.amber.css') }}">
+    <script src="{{ url_for('static', filename='htmx.min.js') }}"></script>
     <style>
       #picker-overlay {
         display: none;
@@ -106,36 +107,14 @@
         if (!data || !data.status) return;
         if (data.id !== currentIntentId) return;
 
-        const result = document.getElementById("result");
-
-        if (data.status === "done") {
-          const rows = data.results.map(r =>
-            `<tr><td><a href="${r.sharingUrl || '#'}">${r.name}</a></td><td>${r.mimeType}</td><td>${r.size}</td></tr>`
-          ).join("");
-          result.innerHTML = `
-          <div class="alert alert-success alert-dismissible">
-            <span class="alert-title">Fichiers sélectionnés</span>
-            <table class="table-compact">
-              <thead><tr><th>Nom</th><th>Type</th><th>Taille</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-            <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
-          </div>`;
-          closePicker();
-        } else if (data.status === "cancel") {
-          result.innerHTML = `
-          <div class="alert alert-info alert-dismissible">
-            <p>Sélection annulée.</p>
-            <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
-          </div>`;
-          closePicker();
-        } else if (data.status === "error") {
-          result.innerHTML = `
-          <div class="alert alert-error alert-dismissible">
-            <span class="alert-title">Erreur</span>
-            <p>${data.message}</p>
-            <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
-          </div>`;
+        if (["done", "cancel", "error"].includes(data.status)) {
+          fetch("/result", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          })
+            .then(r => r.text())
+            .then(html => { document.getElementById("result").innerHTML = html; });
           closePicker();
         }
       });

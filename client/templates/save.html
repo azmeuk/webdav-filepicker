@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAVE — Client</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='mu.amber.css') }}">
+    <script src="{{ url_for('static', filename='htmx.min.js') }}"></script>
     <style>
       #picker-overlay {
         display: none;
@@ -117,34 +118,14 @@
             { status: "save", id: currentIntentId, results: pendingFiles },
             pickerOrigin
           );
-        } else if (data.status === "done") {
-          const rows = data.results.map(r =>
-            `<tr><td><a href="${r.sharingUrl || '#'}">${r.name}</a></td></tr>`
-          ).join("");
-          result.innerHTML = `
-          <div class="alert alert-success alert-dismissible">
-            <span class="alert-title">Fichier(s) enregistré(s)</span>
-            <table class="table-compact">
-              <thead><tr><th>Nom</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-            <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
-          </div>`;
-          closePicker();
-        } else if (data.status === "cancel") {
-          result.innerHTML = `
-          <div class="alert alert-info alert-dismissible">
-            <p>Enregistrement annulé.</p>
-            <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
-          </div>`;
-          closePicker();
-        } else if (data.status === "error") {
-          result.innerHTML = `
-          <div class="alert alert-error alert-dismissible">
-            <span class="alert-title">Erreur</span>
-            <p>${data.message}</p>
-            <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
-          </div>`;
+        } else if (["done", "cancel", "error"].includes(data.status)) {
+          fetch("/result", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          })
+            .then(r => r.text())
+            .then(html => { document.getElementById("result").innerHTML = html; });
           closePicker();
         }
       });

@@ -1,0 +1,31 @@
+{% if status == "done" %}
+  <div class="alert alert-success alert-dismissible">
+    <span class="alert-title">Fichier(s) sélectionné(s)</span>
+    <table class="table-compact">
+      <thead>
+        <tr><th>Nom</th><th>Type</th><th>Taille</th></tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+          <tr>
+            <td><a href="{{ r.sharingUrl or r.downloadUrl or '#' }}">{{ r.name }}</a></td>
+            <td>{{ r.mimeType or '' }}</td>
+            <td>{{ r.size or '' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
+  </div>
+{% elif status == "cancel" %}
+  <div class="alert alert-info alert-dismissible">
+    <p>Sélection annulée.</p>
+    <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
+  </div>
+{% elif status == "error" %}
+  <div class="alert alert-error alert-dismissible">
+    <span class="alert-title">Erreur</span>
+    <p>{{ message }}</p>
+    <button class="alert-close" aria-label="Close" onclick="this.parentElement.remove()">&times;</button>
+  </div>
+{% endif %}

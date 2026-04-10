@@ -1,5 +1,5 @@
 import httpx
-from quart import Quart, render_template
+from quart import Quart, render_template, request
 
 app = Quart(__name__)
 
@@ -37,3 +37,14 @@ async def pick():
 async def save():
     picker_url = await get_capability_url("SAVE")
     return await render_template("save.html", picker_url=picker_url)
+
+
+@app.route("/result", methods=["POST"])
+async def result():
+    data = await request.get_json()
+    return await render_template(
+        "partials/result.html",
+        status=data.get("status"),
+        results=data.get("results", []),
+        message=data.get("message", ""),
+    )

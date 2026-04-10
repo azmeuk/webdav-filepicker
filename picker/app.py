@@ -183,14 +183,16 @@ async def api_save(path: str = "/"):
     if not path.startswith("/"):
         path = "/" + path
     body = await request.get_json()
-    name = body["name"]
-    if "payload" in body:
-        data = b64decode(body["payload"])
-    elif "downloadUrl" in body:
-        data = download_from_url(body["downloadUrl"])
-    else:
-        return jsonify({"error": "No payload or downloadUrl provided"}), 400
+    name = body.get("name")
+    if not name:
+        return jsonify({"error": "Missing 'name' field"}), 400
     try:
+        if "payload" in body:
+            data = b64decode(body["payload"])
+        elif "downloadUrl" in body:
+            data = download_from_url(body["downloadUrl"])
+        else:
+            return jsonify({"error": "No payload or downloadUrl provided"}), 400
         upload_bytes(path, name, data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

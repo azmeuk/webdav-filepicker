@@ -206,10 +206,26 @@ async def api_save(path: str = "/"):
     )
 
 
+def _validate_intent(intent: dict, action: str) -> str | None:
+    """Return an error message if required params are missing, None otherwise."""
+    if action == "SAVE":
+        if not intent["client_url"]:
+            return "Le paramètre clientUrl est requis pour l'action SAVE."
+        if not intent["intent_id"]:
+            return "Le paramètre id est requis pour l'action SAVE."
+    elif action == "PICK" and intent["client_url"] and not intent["intent_id"]:
+        return "Le paramètre id est requis quand clientUrl est fourni."
+    return None
+
+
 async def _browse(path: str, action: str):
     path = normalize_path(path)
     intent = parse_intent_params()
     intent["action"] = action
+
+    error = _validate_intent(intent, action)
+    if error:
+        return await render_template("error.html", message=error), 400
     entries = list_files(path)
 
     dirs = sorted([e for e in entries if e["is_dir"]], key=lambda e: e["name"])

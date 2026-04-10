@@ -19,13 +19,24 @@ function updateButton() {
 
 function sendMessage(message) {
   const parentWindow = window.opener || window.parent;
-  if (CLIENT_URL) {
-    parentWindow.postMessage(message, CLIENT_URL);
+  if (!CLIENT_URL) {
+    console.debug("[picker] sendMessage skipped: no CLIENT_URL (standalone mode)");
+    return;
   }
+  if (parentWindow === window) {
+    console.warn("[picker] sendMessage skipped: no parent window (not in iframe or popup)");
+    return;
+  }
+  console.debug("[picker] sendMessage:", message.status, message);
+  parentWindow.postMessage(message, CLIENT_URL);
 }
 
 async function fetchContent(path) {
   const resp = await fetch("/api/content" + path);
+  if (!resp.ok) {
+    console.error("[picker] fetchContent failed for", path, resp.status);
+    return null;
+  }
   const data = await resp.json();
   return data.content;
 }
@@ -62,7 +73,10 @@ document.querySelectorAll(".file-entry[data-path]").forEach(el => {
 
 // PICK mode: send selection
 document.getElementById("btn-select")?.addEventListener("click", async () => {
-  if (selectedFiles.length === 0) return;
+  if (selectedFiles.length === 0) {
+    console.debug("[picker] select clicked but no files selected");
+    return;
+  }
 
   const wantSharingUrl = INTENT_TYPE.includes("sharingUrl");
   const wantDownloadUrl = INTENT_TYPE.includes("downloadUrl");
@@ -83,6 +97,9 @@ document.getElementById("btn-select")?.addEventListener("click", async () => {
     }
     if (wantPayload) {
       result.payload = await fetchContent(f.path);
+      if (result.payload === null) {
+        console.error("[picker] failed to fetch content for", f.path);
+      }
     }
     return result;
   }));
@@ -96,20 +113,28 @@ document.getElementById("btn-select")?.addEventListener("click", async () => {
 
 // SAVE mode: receive payload from client and handle save
 if (ACTION === "SAVE") {
-  // Notify client we're ready to receive payload
+  console.debug("[picker] SAVE mode, sending ready");
   sendMessage({ status: "ready", id: INTENT_ID });
 
   // Listen for payload from client
   window.addEventListener("message", (e) => {
-    console.debug("filePicker received message", e.data)
-    if (!e.data || e.data.status !== "save") {
-        console.warn("Bad status");
-        return
+    if (!e.data || !e.data.status) {
+      console.debug("[picker] ignoring message: no status", e.data);
+      return;
+    }
+    if (e.data.status !== "save") {
+      console.debug("[picker] ignoring message: status is", e.data.status, "(expected 'save')");
+      return;
     }
     if (e.data.id !== INTENT_ID) {
-        console.warn("Bad intent ID");
-        return
-    };
+      console.warn("[picker] ignoring save message: id mismatch", e.data.id, "!==", INTENT_ID);
+      return;
+    }
+    if (!e.data.results || e.data.results.length === 0) {
+      console.warn("[picker] save message has no results");
+      return;
+    }
+    console.debug("[picker] received save data:", e.data.results.length, "file(s)");
     saveData = e.data;
 
     const filenameInput = document.getElementById("save-filename");
@@ -124,12 +149,11 @@ if (ACTION === "SAVE") {
 
   document.getElementById("btn-save")?.addEventListener("click", async () => {
     if (!saveData || !saveData.results || saveData.results.length === 0) {
-      console.warn("save data")
+      console.warn("[picker] save clicked but no data received from client");
       sendMessage({ status: "error", id: INTENT_ID, message: "No file data received" });
       return;
     }
 
-    // In single mode, use the filename input if available
     const filenameInput = document.getElementById("save-filename");
     const files = saveData.results.map((f, i) => {
       const name = (i === 0 && filenameInput && filenameInput.value.trim())
@@ -138,6 +162,7 @@ if (ACTION === "SAVE") {
       return { ...f, name };
     });
 
+    console.debug("[picker] uploading", files.length, "file(s) to", CURRENT_PATH);
     const results = [];
     for (const f of files) {
       const body = { name: f.name };
@@ -146,6 +171,7 @@ if (ACTION === "SAVE") {
       } else if (f.downloadUrl) {
         body.downloadUrl = f.downloadUrl;
       } else {
+        console.error("[picker] no payload or downloadUrl for", f.name);
         sendMessage({ status: "error", id: INTENT_ID, message: `No data for ${f.name}` });
         return;
       }
@@ -158,19 +184,21 @@ if (ACTION === "SAVE") {
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
+        console.error("[picker] upload failed for", f.name, err);
         sendMessage({ status: "error", id: INTENT_ID, message: err.error || `Upload failed for ${f.name}` });
         return;
       }
       results.push(await resp.json());
     }
 
-    console.log("save done", results)
+    console.debug("[picker] save done:", results);
     sendMessage({ status: "done", id: INTENT_ID, results });
   });
 }
 
 // Cancel
 document.getElementById("btn-cancel")?.addEventListener("click", () => {
+  console.debug("[picker] cancel clicked");
   sendMessage({
     status: "cancel",
     id: INTENT_ID,

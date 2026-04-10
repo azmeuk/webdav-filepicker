@@ -1,0 +1,19 @@
+{% from "icons.html" import icon %}
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur — WebDAV File Picker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='mu.azure.css') }}">
+  </head>
+  <body>
+    <main class="container">
+      <div class="alert alert-error">
+        <span class="alert-title">Erreur</span>
+        <p>{{ message }}</p>
+      </div>
+      <a href="{{ url_for('browse') }}">Retour au file picker</a>
+    </main>
+  </body>
+</html>

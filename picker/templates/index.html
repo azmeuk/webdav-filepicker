@@ -66,18 +66,26 @@
                   {% endif %}
                 </tr>
               {% else %}
-                <tr class="clickable file-entry" data-path="{{ entry.path }}" data-name="{{ entry.name }}" data-size="{{ entry.size or 0 }}" data-content-type="{{ entry.content_type }}">
-                  <td>{{ icon("file") }}</td>
-                  <td>{{ entry.name }}</td>
-                  <td>{{ entry.size | filesizeformat if entry.size else '' }}</td>
-                  {% if not intent.client_url %}
-                    <td class="delete-cell">
-                      <form method="post" action="{{ url_for('delete', path=entry.path.lstrip('/')) }}" onclick="event.stopPropagation()" onsubmit="return confirm('Supprimer {{ entry.name }} ?')">
-                        <button type="submit" class="btn-delete" title="Supprimer">{{ icon("trash-2", 24) }}</button>
-                      </form>
-                    </td>
-                  {% endif %}
-                </tr>
+                {% if intent.client_url %}
+                  <tr class="clickable file-entry" data-path="{{ entry.path }}" data-name="{{ entry.name }}" data-size="{{ entry.size or 0 }}" data-content-type="{{ entry.content_type }}">
+                    <td>{{ icon("file") }}</td>
+                    <td>{{ entry.name }}</td>
+                    <td>{{ entry.size | filesizeformat if entry.size else '' }}</td>
+                  </tr>
+                {% else %}
+                  <tr class="clickable" onclick="location.href='{{ url_for('preview', path=entry.path.lstrip('/')) }}'">
+                    <td>{{ icon("file") }}</td>
+                    <td><a href="{{ url_for('preview', path=entry.path.lstrip('/')) }}">{{ entry.name }}</a></td>
+                    <td>{{ entry.size | filesizeformat if entry.size else '' }}</td>
+                    {% if not intent.client_url %}
+                      <td class="delete-cell">
+                        <form method="post" action="{{ url_for('delete', path=entry.path.lstrip('/')) }}" onclick="event.stopPropagation()" onsubmit="return confirm('Supprimer {{ entry.name }} ?')">
+                          <button type="submit" class="btn-delete" title="Supprimer">{{ icon("trash-2", 24) }}</button>
+                        </form>
+                      </td>
+                    {% endif %}
+                  </tr>
+                {% endif %}
               {% endif %}
             {% endfor %}
           </tbody>

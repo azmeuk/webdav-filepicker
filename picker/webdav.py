@@ -5,6 +5,18 @@ WEBDAV_URL = "http://localhost:8080"
 client = Client(WEBDAV_URL)
 
 
+def file_info(path: str) -> dict:
+    """Get metadata for a single file."""
+    info = client.info(path)
+    return {
+        "name": info.get("display_name") or path.rstrip("/").rsplit("/", 1)[-1],
+        "path": path,
+        "size": info.get("content_length"),
+        "content_type": info.get("content_type", ""),
+        "modified": str(info["modified"]) if info.get("modified") else "",
+    }
+
+
 def download_file(path: str) -> bytes:
     """Download a file and return its content."""
     import io

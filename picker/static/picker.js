@@ -70,7 +70,7 @@ document.getElementById("btn-select")?.addEventListener("click", async () => {
       size: f.size,
     };
     if (wantSharingUrl) {
-      result.sharingUrl = fileUrl(f.path);
+      result.sharingUrl = window.location.origin + "/preview" + f.path;
     }
     if (wantDownloadUrl) {
       result.downloadUrl = fileUrl(f.path);

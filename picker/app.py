@@ -3,7 +3,9 @@ from fnmatch import fnmatch
 
 from quart import Quart, flash, jsonify, render_template, request, redirect, url_for
 
-from picker.webdav import download_file, list_files, mkdir, remove
+from quart import Response
+
+from picker.webdav import download_file, file_info, list_files, mkdir, remove
 
 app = Quart(__name__)
 app.secret_key = "dev"
@@ -78,6 +80,31 @@ async def create_dir(path: str = "/"):
     if name:
         mkdir(path.rstrip("/") + "/" + name)
     return redirect(url_for("browse", path=path.lstrip("/"), **request.args))
+
+
+@app.route("/preview/<path:path>")
+async def preview(path: str):
+    if not path.startswith("/"):
+        path = "/" + path
+    info = file_info(path)
+    is_image = info["content_type"].startswith("image/")
+    parent = path.rsplit("/", 1)[0] or "/"
+    return await render_template(
+        "preview.html",
+        file=info,
+        is_image=is_image,
+        raw_url=url_for("raw", path=path.lstrip("/")),
+        parent_url=url_for("browse", path=parent.lstrip("/")),
+    )
+
+
+@app.route("/raw/<path:path>")
+async def raw(path: str):
+    if not path.startswith("/"):
+        path = "/" + path
+    info = file_info(path)
+    data = download_file(path)
+    return Response(data, content_type=info["content_type"])
 
 
 @app.route("/api/content/<path:path>")

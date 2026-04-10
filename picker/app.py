@@ -86,7 +86,6 @@ def parse_intent_params() -> dict:
         "save_name": request.args.get("name", ""),
         "save_mime_type": request.args.get("mimeType", ""),
         "save_size": request.args.get("size", ""),
-        "source_type": request.args.get("sourceType", "payload"),
         "download_url": request.args.get("downloadUrl", ""),
     }
 

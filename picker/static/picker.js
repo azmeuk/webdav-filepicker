@@ -118,6 +118,7 @@ if (ACTION === "SAVE") {
 
   // Listen for payload from client
   window.addEventListener("message", (e) => {
+    console.debug("[picker] message received");
     if (!e.data || !e.data.status) {
       console.debug("[picker] ignoring message: no status", e.data);
       return;

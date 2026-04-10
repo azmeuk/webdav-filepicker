@@ -68,7 +68,6 @@
         const params = new URLSearchParams();
 
         if (files.length > 0) {
-          params.set("sourceType", "payload");
           bridge.pendingFiles = await Promise.all(files.map(async (f) => ({
             name: f.name,
             mimeType: f.type,
@@ -76,7 +75,6 @@
             payload: await readFileAsBase64(f),
           })));
         } else if (url) {
-          params.set("sourceType", "downloadUrl");
           bridge.pendingFiles = [{
             name: name || url.split("/").pop() || "file",
             downloadUrl: url,

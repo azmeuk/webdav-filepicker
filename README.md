@@ -6,4 +6,5 @@ You need [uv](https://docs.astral.sh/uv/getting-started/installation) on your sy
 uvx honcho start
 ```
 
-Open http://localhost:5000
+Open the file provider at http://localhost:5000
+Open the client at http://localhost:5001
